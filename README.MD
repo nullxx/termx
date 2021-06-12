@@ -19,6 +19,8 @@
     <a href="https://github.com/nullxx/termx"><strong>Explore the docs »</strong></a>
     <br />
     <br />
+    <a href="https://youtu.be/R_mrOg-3FCw">Demo</a>
+    ·
     <a href="https://github.com/nullxx/termx/issues">Report Bug</a>
     ·
     <a href="https://github.com/nullxx/termx/issues">Request Feature</a>
