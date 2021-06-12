@@ -1,0 +1,99 @@
+{
+  "name": "termx",
+  "productName": "termx",
+  "version": "1.0.0",
+  "description": "My Electron application description",
+  "main": "src/main.js",
+  "homepage": "./",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "start:forge": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "yarn run build && electron-forge make",
+    "publish": "electron-forge publish",
+    "electron:dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && yarn run start:forge \"",
+    "lint": "echo \"No linting configured\""
+  },
+  "keywords": [],
+  "author": {
+    "name": "Jon Lara",
+    "email": "mail@nullx.me"
+  },
+  "license": "MIT",
+  "config": {
+    "forge": {
+      "packagerConfig": {
+        "icon": "public/icons/icon.icns"
+      },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "termx"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "electron-is-dev": "^2.0.0",
+    "ssh2": "^1.1.0",
+    "electron-squirrel-startup": "^1.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.14.3",
+    "@babel/preset-react": "^7.13.13",
+    "@electron-forge/cli": "^6.0.0-beta.54",
+    "@electron-forge/maker-deb": "^6.0.0-beta.54",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.54",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
+    "@electron-forge/maker-zip": "^6.0.0-beta.54",
+    "atomize": "^1.0.26",
+    "concurrently": "^6.2.0",
+    "electron": "13.1.1",
+    "eslint": "^7.28.0",
+    "eslint-plugin-react": "^7.24.0",
+    "lodash": "^4.17.21",
+    "react-alert": "^7.0.3",
+    "react-alert-template-basic": "^1.0.2",
+    "react-animation": "^1.2.2",
+    "react-contexify": "^5.0.0",
+    "react-context-menu": "^3.0.2",
+    "react-scripts": "^4.0.3",
+    "react-transition-group": "^4.4.2",
+    "styletron-engine-atomic": "^1.4.8",
+    "styletron-react": "^6.0.1",
+    "wait-on": "^5.3.0",
+    "xterm-for-react": "^1.0.4",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-router-dom": "^5.2.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
