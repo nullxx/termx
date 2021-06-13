@@ -51,10 +51,10 @@ const Terminal = (props) => {
         if (!term || !term.current || !term.current.terminal) return;
         const { terminal, id } = JSON.parse(props.location.state);
 
-        term.current.terminal.clear();
+        term.current && term.current.terminal.clear();
 
         getData(id).forEach((data) => {
-            term.current.terminal.write(data);
+            term.current && term.current.terminal.write(data, () => term.current.terminal.scrollToBottom());
         });
 
         const onSSHData = (e, { id: newDataId, data }) => {
