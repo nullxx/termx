@@ -1,6 +1,6 @@
-![GitHub top language](https://img.shields.io/github/languages/top/nullxx/termx?style=for-the-badge&v=0.01)
-![GitHub Repo stars](https://img.shields.io/github/stars/nullxx/termx?style=for-the-badge&v=0.01)
-![GitHub last commit](https://img.shields.io/github/last-commit/nullxx/termx?style=for-the-badge&v=0.01)
+![GitHub top language](https://img.shields.io/github/languages/top/nullxx/termx?style=for-the-badge&v=0.02)
+![GitHub Repo stars](https://img.shields.io/github/stars/nullxx/termx?style=for-the-badge&v=0.02)
+![GitHub last commit](https://img.shields.io/github/last-commit/nullxx/termx?style=for-the-badge&v=0.02)
 
 
 
