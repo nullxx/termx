@@ -65,28 +65,36 @@ const Terminal = (props) => {
             }
         };
 
-        const onSSHError = (event, error) => {
+        const onSSHError = (event, { id: newDataId, error }) => {
             alert.error('Connection erroned, ' + error.message, {
                 onClose: () => {
-                    bottomMenu.removeTerminal({ id });
+                    bottomMenu.removeTerminal({ id: newDataId });
                     history.push('/');
                 }
             });
         };
+        const onSSHSTDError = (event, { id: newDataId, data }) => {
+            if (newDataId === id) {
+                alert.warn('Connection erroned, ' + data);
 
-        const onSSHClose = (event, obj) => {
-            alert.error('Connection closed with code ' + obj.code, {
+            }
+        }
+
+        const onSSHClose = (event, { id: newDataId, code, signal }) => {
+            alert.error(`Connection closed with code ${code} (${signal})`, {
                 onClose: () => {
-                    bottomMenu.removeTerminal({ id });
+                    // if (id === newDataId) { // if an event comes from other terminal id
+                    bottomMenu.removeTerminal({ id: newDataId });
                     history.push('/');
+                    // }
+
                 }
             });
         };
 
         ipcRenderer.addListener('ssh-data', onSSHData);
-
         ipcRenderer.addListener('ssh-error', onSSHError);
-
+        ipcRenderer.addListener('ssh-stderr', onSSHSTDError);
         ipcRenderer.addListener('ssh-close', onSSHClose);
 
 
@@ -100,6 +108,7 @@ const Terminal = (props) => {
             onTerminalData.dispose();
             ipcRenderer.removeListener('ssh-data', onSSHData);
             ipcRenderer.removeListener('ssh-error', onSSHError);
+            ipcRenderer.removeListener('ssh-stderr', onSSHSTDError);
             ipcRenderer.removeListener('ssh-close', onSSHClose);
             window.removeEventListener('resize', onResize);
         };

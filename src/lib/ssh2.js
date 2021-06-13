@@ -12,22 +12,22 @@ ipcMain.on('init-ssh', (event, { terminal, id }) => {
     const conn = new Client();
 
     conn.on('ready', () => {
-        conn.shell((err, stream) => {
-            if (err) return mainWindow.webContents.send('ssh-error', err);
+        conn.shell((error, stream) => {
+            if (error) return mainWindow.webContents.send('ssh-error', { id, error });
 
             sshStreams.push({ stream, id });
 
             stream
-                .on('close', (code, signal) => mainWindow.webContents.send('ssh-close', { code, signal }) && conn.end())
+                .on('close', (code, signal) => mainWindow.webContents.send('ssh-close', { id, code, signal }) && conn.end())
                 .on('data', (data) => mainWindow.webContents.send('ssh-data', { id, data }))
-                .stderr.on('data', (data) => mainWindow.webContents.send('ssh-stderr', data));
+                .stderr.on('data', (data) => mainWindow.webContents.send('ssh-stderr', { id, data }));
         })
     });
 
     try {
         const { address, username, password, port = 22, sshKey, sshPhrase } = terminal;
 
-        conn.addListener('error', (error) => mainWindow.webContents.send('ssh-error', error));
+        conn.addListener('error', (error) => mainWindow.webContents.send('ssh-error', { id, error }));
 
         conn.connect({
             host: address,
@@ -39,7 +39,7 @@ ipcMain.on('init-ssh', (event, { terminal, id }) => {
         });
 
     } catch (error) {
-        mainWindow.webContents.send('ssh-error', error);
+        mainWindow.webContents.send('ssh-error', { id, error });
     }
 });
 
@@ -50,7 +50,7 @@ ipcMain.on('send-command-ssh', (event, { inputCommand, id }) => {
     const streamObj = sshStreams.find((stream) => stream.id === id);
 
     if (!streamObj || !streamObj.stream || streamObj.stream.closed) {
-        return mainWindow.webContents.send('ssh-error', 'Stream not found');
+        return mainWindow.webContents.send('ssh-error', { id, error: new Error('Stream not found') });
     }
 
     streamObj.stream.write(inputCommand);
