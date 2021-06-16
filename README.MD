@@ -55,6 +55,8 @@ A simple SSH terminal app.
 
 To get a local copy up and running follow these simple steps.
 
+<img width="941" alt="Captura de pantalla 2021-06-16 a las 23 53 17" src="https://user-images.githubusercontent.com/28962947/122299301-1ab4be80-cefe-11eb-8e8b-9828bff1facd.png">
+
 ### Installation
 
 1. Clone the repo
