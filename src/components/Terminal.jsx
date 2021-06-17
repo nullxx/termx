@@ -87,11 +87,8 @@ const Terminal = (props) => {
         const onSSHClose = (event, { id: newDataId, code, signal }) => {
             alert.error(`Connection closed with code ${code} (${signal})`, {
                 onClose: () => {
-                    // if (id === newDataId) { // if an event comes from other terminal id
                     bottomMenu.removeTerminal({ id: newDataId });
                     history.push('/');
-                    // }
-
                 }
             });
         };
@@ -121,7 +118,6 @@ const Terminal = (props) => {
     return (
         <div style={styles.container}>
             <XTerm ref={term} />
-            {/* <BottomMenu {...props} ref={bottomMenuRef} /> */}
         </div>
     );
 }
