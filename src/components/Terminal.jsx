@@ -85,7 +85,7 @@ const Terminal = (props) => {
         }
 
         const onSSHClose = (event, { id: newDataId, code, signal }) => {
-            alert.error(`Connection closed with code ${code} (${signal})`, {
+            alert.error(`Connection closed with code ${code} ${signal ? `(${signal})` : ''}`, {
                 onClose: () => {
                     bottomMenu.removeTerminal({ id: newDataId });
                     history.push('/');
