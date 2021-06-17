@@ -25,10 +25,13 @@ const getData = (id) => {
 const getFitSize = (terminal) => {
     const BOTTOM_HEIGHT = 30;
 
-    const rows = (window.innerHeight - BOTTOM_HEIGHT) / terminal._core._renderService.dimensions.actualCellHeight;
-    const fullCols = window.innerWidth / terminal._core._renderService.dimensions.actualCellWidth;
+    const height = window.innerHeight - BOTTOM_HEIGHT;
+    const width = window.innerWidth;
 
-    return { cols: Math.floor(fullCols), rows: Math.floor(rows) };
+    const rows = height / terminal._core._renderService.dimensions.actualCellHeight;
+    const fullCols = width / terminal._core._renderService.dimensions.actualCellWidth;
+
+    return { cols: Math.floor(fullCols), rows: Math.floor(rows), height, width };
 }
 
 const Terminal = (props) => {
@@ -37,19 +40,21 @@ const Terminal = (props) => {
     const alert = useAlert();
     const history = useHistory();
 
+    const { terminal, id } = JSON.parse(props.location.state);
+
     const onResize = function (e) {
         if (e) e.preventDefault();
         if (!term || !term.current || !term.current.terminal) return;
-        const { cols, rows } = getFitSize(term.current.terminal);
+        const { cols, rows, height, width } = getFitSize(term.current.terminal);
 
         term.current.terminal.resize(cols, rows);
+        ipcRenderer.send('onWindowResized', { size: { cols, rows, height, width }, id });
     };
 
     window.addEventListener('resize', onResize);
 
     React.useEffect(() => {
         if (!term || !term.current || !term.current.terminal) return;
-        const { terminal, id } = JSON.parse(props.location.state);
 
         term.current && term.current.terminal.clear();
 
@@ -102,7 +107,7 @@ const Terminal = (props) => {
             ipcRenderer.send('send-command-ssh', { inputCommand: e, id });
         });
 
-        ipcRenderer.send('init-ssh', { terminal, id });
+        ipcRenderer.send('init-ssh', { terminal, id, size: getFitSize(term.current.terminal) });
         onResize(null);
         return function cleanup() {
             onTerminalData.dispose();

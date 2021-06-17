@@ -2,7 +2,9 @@ const { BrowserWindow, ipcMain } = require('electron');
 const sshStreams = []
 const { Client } = require('ssh2');
 
-ipcMain.on('init-ssh', (event, { terminal, id }) => {
+const termDefault = 'xterm';
+
+ipcMain.on('init-ssh', (event, { terminal, size, id }) => {
     const mainWindow = BrowserWindow.getFocusedWindow(); // by now only one window
 
     if (sshStreams.find((stream) => stream.id === id)) {
@@ -12,7 +14,7 @@ ipcMain.on('init-ssh', (event, { terminal, id }) => {
     const conn = new Client();
 
     conn.on('ready', () => {
-        conn.shell((error, stream) => {
+        conn.shell({ term: termDefault, ...size }, (error, stream) => {
             if (error) return mainWindow.webContents.send('ssh-error', { id, error });
 
             sshStreams.push({ stream, id });
@@ -52,7 +54,16 @@ ipcMain.on('send-command-ssh', (event, { inputCommand, id }) => {
     if (!streamObj || !streamObj.stream || streamObj.stream.closed) {
         return mainWindow.webContents.send('ssh-error', { id, error: new Error('Stream not found') });
     }
+    return streamObj.stream.write(Buffer.from(inputCommand, 'utf-8'));
+});
 
-    streamObj.stream.write(inputCommand);
+ipcMain.on('onWindowResized', (event, { size: { rows, cols, height, width }, id }) => {
+    const streamObj = sshStreams.find((stream) => stream.id === id);
+
+    if (!streamObj || !streamObj.stream || streamObj.stream.closed) {
+        return false;
+    }
+
+    return streamObj.stream.setWindow(rows, cols, height, width);
 });
 
