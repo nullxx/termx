@@ -1,4 +1,3 @@
-// import BottomMenu from './BottomMenu';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { XTerm } from 'xterm-for-react';
