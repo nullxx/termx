@@ -52,7 +52,10 @@ ipcMain.on('send-command-ssh', (event, { inputCommand, id }) => {
     const streamObj = sshStreams.find((stream) => stream.id === id);
 
     if (!streamObj || !streamObj.stream || streamObj.stream.closed) {
-        return mainWindow.webContents.send('ssh-error', { id, error: new Error('Stream not found') });
+        if (streamObj && streamObj.stream && streamObj.stream.closed) {
+            mainWindow.webContents.send('ssh-error', { id, error: new Error('Stream is closed') });
+        }
+        return;
     }
     return streamObj.stream.write(Buffer.from(inputCommand, 'utf-8'));
 });
