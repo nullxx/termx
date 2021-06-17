@@ -21,7 +21,7 @@ ipcMain.on('init-ssh', (event, { terminal, size, id }) => {
 
             stream
                 .on('close', (code, signal) => mainWindow.webContents.send('ssh-close', { id, code, signal }) && conn.end())
-                .on('data', (data) => mainWindow.webContents.send('ssh-data', { id, data }))
+                .on('data', (data) => mainWindow.webContents.send('ssh-data', { id, data: Buffer.from(data, 'utf-8') }))
                 .stderr.on('data', (data) => mainWindow.webContents.send('ssh-stderr', { id, data }));
         })
     });

@@ -65,7 +65,7 @@ const Terminal = (props) => {
             if (!term.current) return;
             addData(newDataId, data);
             if (id === newDataId) { // if an event comes from other terminal id
-                term.current.terminal.write(data);
+                term.current.terminal.write(Buffer.from(data, 'utf-8'));
             }
         };
 
