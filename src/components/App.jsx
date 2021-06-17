@@ -8,11 +8,13 @@ import Terminal from './Terminal';
 const App = (props) => (
   <MemoryRouter>
     <Switch>
-      <BottomMenu {...props}>
-        <Route exact path='/terminal/:id' component={Terminal} />
-        <Route exact path='/' component={AddNew} />
-        <Redirect to="/" />
-      </BottomMenu>
+      <React.Fragment>
+        <BottomMenu {...props}>
+          <Route exact path='/terminal/:id' component={Terminal} />
+          <Route exact path='/' component={AddNew} />
+          <Redirect to="/" />
+        </BottomMenu>
+      </React.Fragment>
     </Switch>
   </MemoryRouter>
 );
