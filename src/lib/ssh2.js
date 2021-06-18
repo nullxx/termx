@@ -31,7 +31,6 @@ const initSSH = (event, { terminal, size, id }) => {
 
                 if (stream.isPaused() && newId === id && Buffer.compare(pcssChunkUint8Array, chunk) === 0) {
                     stream.resume();
-                    console.log('Stream resume');
                 } else if (!stream.isPaused() && newId === id) {
                     console.warn('Stream was not paused while trying to resume it', id);
                 }
@@ -47,7 +46,6 @@ const initSSH = (event, { terminal, size, id }) => {
                 })
                 .on('data', (data) => {
                     stream.pause();
-                    console.log('Stream pause');
                     processingChunkBuffer = Buffer.from(data, 'utf-8');
                     mainWindow.webContents.send('ssh-data', { id, data: processingChunkBuffer });
                 })
