@@ -1,7 +1,7 @@
 import { Button, Checkbox, Icon, Image, Input, Label, Textarea } from "atomize";
 import { getData, saveData } from '../lib/localStorage';
+import { getStoredSecure, storeSecure } from "../lib/secureStorage";
 
-// import BottomMenu from './BottomMenu';
 import HistoryBox from "./HistoryBox";
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -31,9 +31,9 @@ const AddNew = () => {
 
     const [historyData, setHistoryData] = React.useState(getData('history') || []);
 
-    const runSSH = (history, port, label, address, username, password, sshKey, sshPhrase) => {
+    const runSSH = ({ port, label, address, username, password, sshKey, sshPhrase }) => {
 
-        if ([port, label, address, username, (password || sshKey)].filter((e) => e.length === 0).length > 0) {
+        if ([port, label, address, username, (password || sshKey)].filter((e) => !e || e.length === 0).length > 0) {
             return alert.show('Please fill all the fields');
         }
 
@@ -49,9 +49,9 @@ const AddNew = () => {
         bottomMenu.addTerminal({ terminal, id });
     }
 
-    const saveSSH = (port, label, address, username, password, sshKey, sshPhrase) => {
+    const saveSSH = async (port, label, address, username, password, sshKey, sshPhrase) => {
 
-        if ([port, label, address, username, (password || sshKey)].filter((e) => e.length === 0).length > 0) {
+        if ([port, label, address, username, (password || sshKey)].filter((e) => !e || e.length === 0).length > 0) {
             return alert.show('Please fill all the fields');
         }
 
@@ -60,7 +60,12 @@ const AddNew = () => {
             return alert.info('Port should be an integer');
         }
 
-        const toSave = { terminal: { port, label, address, username, password, sshKey, sshPhrase } };
+        const toSave = { terminal: { port, label, address, username } };
+
+        if (password) toSave.terminal.passwordId = await storeSecure({ service: 'ssh', secureValue: password });
+        if (sshKey) toSave.terminal.sshKeyId = await storeSecure({ service: 'ssh', secureValue: sshKey });
+        if (sshPhrase) toSave.terminal.sshPhrase = await storeSecure({ service: 'ssh', secureValue: sshPhrase });
+
         const prev = getData('history') || [];
         let savedPrevIndex = prev.findIndex(({ terminal }) => toSave.terminal.address === terminal.address);
 
@@ -74,6 +79,16 @@ const AddNew = () => {
         setHistoryData(prev);
 
         alert.success('Saved!', { timeout: 2500 });
+    }
+
+    const decodeSSH = async (terminal) => {
+        const { passwordId, sshKeyId, sshPhraseId } = terminal;
+
+        if (passwordId) terminal.password = await getStoredSecure({ service: 'ssh', account: passwordId });
+        if (sshKeyId) terminal.sshKey = await getStoredSecure({ service: 'ssh', account: sshKeyId });
+        if (sshPhraseId) terminal.sshPhrase = await getStoredSecure({ service: 'ssh', account: sshPhraseId });
+
+        return terminal;
     }
 
     const editSSH = (terminal) => {
@@ -96,6 +111,12 @@ const AddNew = () => {
         setHistoryData(deletedArr);
 
         alert.success(`Address ${terminal.address} has been deleted!`, { timeout: 2500 });
+    }
+
+    const onHistoryClick = (terminal) => {
+        decodeSSH(terminal)
+            .then((terminal) => runSSH(terminal))
+            .catch(err => alert.error(err.message))
     }
 
     return (
@@ -258,7 +279,7 @@ const AddNew = () => {
                             bg="success700"
                             hoverBg="success600"
                             m={{ r: "1rem" }}
-                            onClick={() => runSSH(history, port, label, address, username, password, sshKey, sshPhrase)}
+                            onClick={() => runSSH({ port, label, address, username, password, sshKey, sshPhrase })}
                         >
                             Connect
                         </Button>
@@ -271,7 +292,7 @@ const AddNew = () => {
                             <HistoryBox
                                 key={i}
                                 terminal={terminal}
-                                onClick={() => runSSH(history, terminal.port, terminal.label, terminal.address, terminal.username, terminal.password, terminal.sshKey, terminal.sshPhrase)}
+                                onClick={() => onHistoryClick(terminal)}
                                 onEdit={editSSH}
                                 onDelete={deleteSSH}
                             />
