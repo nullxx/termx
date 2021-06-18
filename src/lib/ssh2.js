@@ -26,6 +26,7 @@ const initSSH = (event, { terminal, size, id }) => {
             sshStreams.push({ stream, id });
 
             const onChunkWroten = (e, { chunk, id: newId }) => {
+                if (!processingChunkBuffer) return;
                 const pcssChunkUint8Array = new Uint8Array(processingChunkBuffer.buffer, processingChunkBuffer.byteOffset, processingChunkBuffer.byteLength / Uint8Array.BYTES_PER_ELEMENT);
 
                 if (stream.isPaused() && newId === id && Buffer.compare(pcssChunkUint8Array, chunk) === 0) {
