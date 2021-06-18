@@ -65,7 +65,9 @@ const Terminal = (props) => {
             if (!term.current) return;
             addData(newDataId, data);
             if (id === newDataId) { // if an event comes from other terminal id
-                term.current.terminal.write(Buffer.from(data, 'utf-8'));
+                term.current.terminal.write(data, () => {
+                    ipcRenderer.send('ssh-chunkWroten', { chunk: data, id }); // notify chunk was end woritting
+                });
             }
         };
 
