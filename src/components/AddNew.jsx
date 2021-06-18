@@ -33,7 +33,7 @@ const AddNew = () => {
 
     const runSSH = ({ port, label, address, username, password, sshKey, sshPhrase }) => {
 
-        if ([port, label, address, username, (password || sshKey)].filter((e) => !e || e.length === 0).length > 0) {
+        if ([port, label, address, username, (password || sshKey)].filter((e) => e.length === 0).length > 0) {
             return alert.show('Please fill all the fields');
         }
 
@@ -51,7 +51,7 @@ const AddNew = () => {
 
     const saveSSH = async (port, label, address, username, password, sshKey, sshPhrase) => {
 
-        if ([port, label, address, username, (password || sshKey)].filter((e) => !e || e.length === 0).length > 0) {
+        if ([port, label, address, username, (password || sshKey)].filter((e) => e.length === 0).length > 0) {
             return alert.show('Please fill all the fields');
         }
 
@@ -60,11 +60,11 @@ const AddNew = () => {
             return alert.info('Port should be an integer');
         }
 
-        const toSave = { terminal: { port, label, address, username } };
+        const toSave = { terminal: { port, label, address, username, password: '', sshKey: '', sshPhrase: '' } };
 
         if (password) toSave.terminal.passwordId = await storeSecure({ service: 'ssh', secureValue: password });
         if (sshKey) toSave.terminal.sshKeyId = await storeSecure({ service: 'ssh', secureValue: sshKey });
-        if (sshPhrase) toSave.terminal.sshPhrase = await storeSecure({ service: 'ssh', secureValue: sshPhrase });
+        if (sshPhrase) toSave.terminal.sshPhraseId = await storeSecure({ service: 'ssh', secureValue: sshPhrase });
 
         const prev = getData('history') || [];
         let savedPrevIndex = prev.findIndex(({ terminal }) => toSave.terminal.address === terminal.address);
@@ -82,25 +82,29 @@ const AddNew = () => {
     }
 
     const decodeSSH = async (terminal) => {
-        const { passwordId, sshKeyId, sshPhraseId } = terminal;
+        const decodedTerminal = _.clone(terminal);
 
-        if (passwordId) terminal.password = await getStoredSecure({ service: 'ssh', account: passwordId });
-        if (sshKeyId) terminal.sshKey = await getStoredSecure({ service: 'ssh', account: sshKeyId });
-        if (sshPhraseId) terminal.sshPhrase = await getStoredSecure({ service: 'ssh', account: sshPhraseId });
+        if (decodedTerminal.passwordId) decodedTerminal.password = await getStoredSecure({ service: 'ssh', account: decodedTerminal.passwordId });
+        if (decodedTerminal.sshKeyId) decodedTerminal.sshKey = await getStoredSecure({ service: 'ssh', account: decodedTerminal.sshKeyId });
+        if (decodedTerminal.sshPhraseId) decodedTerminal.sshPhrase = await getStoredSecure({ service: 'ssh', account: decodedTerminal.sshPhraseId });
 
-        return terminal;
+        return decodedTerminal;
     }
 
-    const editSSH = (terminal) => {
-        const { port, label, address, username, password, sshKey, sshPhrase } = terminal;
-        setPort(port);
-        setLabel(label);
-        setAddress(address);
-        setUsername(username);
-        setPassword(password);
-        setSSHKey(sshKey);
-        setSSHPhrase(sshPhrase);
-        setUseSSHKey(sshKey.length > 0 && password.length === 0);
+    const editSSH = async (terminal) => {
+        try {
+            const { port, label, address, username, password, sshKey, sshPhrase } = await decodeSSH(terminal);
+            setPort(port);
+            setLabel(label);
+            setAddress(address);
+            setUsername(username);
+            setPassword(password);
+            setSSHKey(sshKey);
+            setSSHPhrase(sshPhrase);
+            setUseSSHKey(sshKey.length > 0 && password.length === 0);
+        } catch (error) {
+            alert.error(error.message);
+        }
     };
 
     const deleteSSH = (terminal) => {
