@@ -1,11 +1,11 @@
 import { MemoryRouter, Redirect, Route, Switch } from 'react-router-dom';
+import React, { FC } from 'react';
 
 import AddNew from './AddNew';
 import BottomMenu from './BottomMenu';
-import React from 'react';
 import Terminal from './Terminal';
 
-const App = (props) => (
+const App: FC = (props) => (
   <MemoryRouter>
     <Switch>
       <React.Fragment>

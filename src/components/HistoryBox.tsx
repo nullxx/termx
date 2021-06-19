@@ -1,23 +1,31 @@
 import { Button, Icon } from "atomize";
 import {
     Item,
+    ItemParams,
     Menu,
     useContextMenu
 } from "react-contexify";
+import React, { FC } from 'react';
 
-import PropTypes from 'prop-types';
-import React from 'react';
+import { TerminalSpec } from "../types/termx/Terminal";
 import styles from '../styles/HistoryBox';
+
+interface HistoryBoxProps {
+    terminalSpec: TerminalSpec;
+    onClick: () => void;
+    onEdit: (data: TerminalSpec) => void;
+    onDelete: (data: TerminalSpec) => void;
+}
 
 const MENU_ID = "menu-id";
 
-const HistoryBox = ({ terminal, onClick, onEdit, onDelete }) => {
+const HistoryBox: FC<HistoryBoxProps> = ({ terminalSpec: terminal, onClick, onEdit, onDelete }) => {
     const cusMenuId = MENU_ID + '_' + terminal.address;
     const { show } = useContextMenu({
         id: cusMenuId
     });
 
-    const onAction = ({ data: { action, data } }) => {
+    const onAction = ({ data: { action, data } }: ItemParams) => {
         if (action === 'edit') {
             onEdit(data);
         } else if (action === 'delete') {
@@ -66,13 +74,5 @@ const HistoryBox = ({ terminal, onClick, onEdit, onDelete }) => {
         </>
     )
 }
-
-HistoryBox.propTypes = {
-    terminal: PropTypes.object,
-    history: PropTypes.object,
-    onClick: PropTypes.func,
-    onEdit: PropTypes.func,
-    onDelete: PropTypes.func
-};
 
 export default HistoryBox;

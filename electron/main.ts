@@ -1,31 +1,40 @@
-const { app, BrowserWindow } = require('electron');
-const isDev = require('electron-is-dev');
-const path = require('path');
+import * as Electron from "electron";
+import * as path from 'path';
+
+import isDev from 'electron-is-dev';
+import logger from 'electron-log';
+
+require('./lib/ssh2');
+
+const { app, BrowserWindow } = Electron;
+
+logger.debug('Init', 'environment', process.env);
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
   app.quit();
 }
-
-require('./lib/ssh2');
 let mainWindow;
 
 const createWindow = () => {
-  // Create the browser window.
-  mainWindow = new BrowserWindow({
+  const browserWindowsParams = {
     width: 800,
     height: 600,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
     }
-  });
+  };
+
+  logger.debug('Create window', browserWindowsParams);
+  mainWindow = new BrowserWindow(browserWindowsParams);
 
   const mainURL = isDev ? `http://localhost:3000` : `file://${path.join(__dirname, "../build/index.html")}`;
+  logger.debug('MainURL', mainURL);
   mainWindow.loadURL(mainURL);
 
-  // Open the DevTools.
   if (isDev) {
+    logger.debug('Opeing dev tools');
     mainWindow.webContents.openDevTools();
   }
 };
@@ -40,6 +49,7 @@ app.on('ready', createWindow);
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    logger.debug('Quiting app !== darwin');
     app.quit();
   }
 });

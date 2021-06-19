@@ -1,6 +1,8 @@
 import { animations } from 'react-animation';
-export default {
+const styles = {
     container: {
         animation: animations.fadeInUp,
     }
-}
+};
+
+export default styles;

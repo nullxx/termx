@@ -90,3 +90,6 @@ out/
 
 # react-scripts buid
 build/
+
+# typescript
+dist/

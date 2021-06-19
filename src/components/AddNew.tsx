@@ -1,10 +1,12 @@
 import { Button, Checkbox, Icon, Image, Input, Label, Textarea } from "atomize";
+import React, { FC } from 'react';
+import { TerminalIdentifier, TerminalSpec } from '../types/termx/Terminal';
 import { getData, saveData } from '../lib/localStorage';
 import { getStoredSecure, storeSecure } from "../lib/secureStorage";
 
 import HistoryBox from "./HistoryBox";
+import { HistoryState } from "../types/termx/History";
 import PropTypes from 'prop-types';
-import React from 'react';
 import { VSeparator } from './Separator';
 import _ from 'lodash';
 import icon from '../assets/codificacion.png';
@@ -12,67 +14,56 @@ import styles from '../styles/AddNew';
 import { useAlert } from 'react-alert'
 import useBottomMenu from "../contexts/bottomMenu/useBottomMenu";
 import { useHistory } from "react-router-dom";
+import { v4 as uuid } from 'uuid';
 
-const { v4: uuid } = require('uuid');
-
-const AddNew = () => {
+const AddNew: FC = () => {
     const alert = useAlert();
     const bottomMenu = useBottomMenu();
-    const history = useHistory();
+    const history = useHistory<HistoryState>();
 
-    const [label, setLabel] = React.useState('');
-    const [address, setAddress] = React.useState('');
-    const [username, setUsername] = React.useState('');
-    const [password, setPassword] = React.useState('');
-    const [port, setPort] = React.useState(22);
-    const [useSSHKey, setUseSSHKey] = React.useState(false);
-    const [sshKey, setSSHKey] = React.useState('');
-    const [sshPhrase, setSSHPhrase] = React.useState('');
+    const [label, setLabel] = React.useState<string>('');
+    const [address, setAddress] = React.useState<string>('');
+    const [username, setUsername] = React.useState<string>('');
+    const [password, setPassword] = React.useState<string>('');
+    const [port, setPort] = React.useState<string>('22');
+    const [useSSHKey, setUseSSHKey] = React.useState<boolean>(false);
+    const [sshKey, setSSHKey] = React.useState<string>('');
+    const [sshPhrase, setSSHPhrase] = React.useState<string>('');
 
-    const [historyData, setHistoryData] = React.useState(getData('history') || []);
+    const [historyData, setHistoryData] = React.useState<TerminalSpec[]>(getData('history') as TerminalSpec[] || []);
 
-    const runSSH = ({ port, label, address, username, password, sshKey, sshPhrase }) => {
+    const runSSH = ({ port, label, address, username, password, sshKey, sshPhrase }: TerminalSpec) => {
 
-        if ([port, label, address, username, (password || sshKey)].filter((e) => !e || e.length === 0).length > 0) {
+        if ([port, label, address, username, (password || sshKey)].filter((e) => !e).length > 0) {
             return alert.show('Please fill all the fields');
         }
 
-        const parsedPort = _.parseInt(port, 10);
-        if (!_.isInteger(parsedPort)) {
-            return alert.info('Port should be an integer');
-        }
+        const spec: TerminalSpec = { port, label, address, username, password, sshKey, sshPhrase };
 
-        const terminal = { port: parsedPort, label, address, username, password, sshKey, sshPhrase };
-
-        const id = uuid();
-        history.push('/terminal/' + id, JSON.stringify({ terminal, id }));
-        bottomMenu.addTerminal({ terminal, id });
+        const id: TerminalIdentifier = uuid();
+        history.push('/terminal/' + id, { data: { spec, id } });
+        bottomMenu.addTerminal({ spec, id });
     }
 
-    const saveSSH = async (port, label, address, username, password, sshKey, sshPhrase) => {
+    const saveSSH = async ({ port, label, address, username, password, sshKey, sshPhrase }: TerminalSpec) => {
 
-        if ([port, label, address, username, (password || sshKey)].filter((e) => !e || e.length === 0).length > 0) {
+        if ([port, label, address, username, (password || sshKey)].filter((e) => !e).length > 0) {
             return alert.show('Please fill all the fields');
         }
 
-        const parsedPort = _.parseInt(port, 10);
-        if (!_.isInteger(parsedPort)) {
-            return alert.info('Port should be an integer');
-        }
+        const toSaveSpec: TerminalSpec = { port, label, address, username, password: '', sshKey: '', sshPhrase: '' };
 
-        const toSave = { terminal: { port, label, address, username } };
+        if (password) toSaveSpec.passwordId = await storeSecure({ service: 'ssh', secureValue: password });
+        if (sshKey) toSaveSpec.sshKeyId = await storeSecure({ service: 'ssh', secureValue: sshKey });
+        if (sshPhrase) toSaveSpec.sshPhraseId = await storeSecure({ service: 'ssh', secureValue: sshPhrase });
 
-        if (password) toSave.terminal.passwordId = await storeSecure({ service: 'ssh', secureValue: password });
-        if (sshKey) toSave.terminal.sshKeyId = await storeSecure({ service: 'ssh', secureValue: sshKey });
-        if (sshPhrase) toSave.terminal.sshPhrase = await storeSecure({ service: 'ssh', secureValue: sshPhrase });
-
-        const prev = getData('history') || [];
-        let savedPrevIndex = prev.findIndex(({ terminal }) => toSave.terminal.address === terminal.address);
+        const prev: TerminalSpec[] = getData('history') as TerminalSpec[] || [];
+        const savedPrevIndex = prev.findIndex((spec) => toSaveSpec.address === spec.address);
 
         if (savedPrevIndex !== -1) {
-            prev[savedPrevIndex] = toSave;
+            prev[savedPrevIndex] = toSaveSpec;
         } else {
-            prev.push(toSave);
+            prev.push(toSaveSpec);
         }
 
         saveData('history', prev);
@@ -81,41 +72,45 @@ const AddNew = () => {
         alert.success('Saved!', { timeout: 2500 });
     }
 
-    const decodeSSH = async (terminal) => {
-        const { passwordId, sshKeyId, sshPhraseId } = terminal;
+    const decodeSSH = async (TerminalSpec: TerminalSpec) => {
+        const decodedTerminalSpec = _.clone(TerminalSpec);
 
-        if (passwordId) terminal.password = await getStoredSecure({ service: 'ssh', account: passwordId });
-        if (sshKeyId) terminal.sshKey = await getStoredSecure({ service: 'ssh', account: sshKeyId });
-        if (sshPhraseId) terminal.sshPhrase = await getStoredSecure({ service: 'ssh', account: sshPhraseId });
+        if (decodedTerminalSpec.passwordId) decodedTerminalSpec.password = await getStoredSecure({ service: 'ssh', account: decodedTerminalSpec.passwordId });
+        if (decodedTerminalSpec.sshKeyId) decodedTerminalSpec.sshKey = await getStoredSecure({ service: 'ssh', account: decodedTerminalSpec.sshKeyId });
+        if (decodedTerminalSpec.sshPhraseId) decodedTerminalSpec.sshPhrase = await getStoredSecure({ service: 'ssh', account: decodedTerminalSpec.sshPhraseId });
 
-        return terminal;
+        return decodedTerminalSpec;
     }
 
-    const editSSH = (terminal) => {
-        const { port, label, address, username, password, sshKey, sshPhrase } = terminal;
-        setPort(port);
-        setLabel(label);
-        setAddress(address);
-        setUsername(username);
-        setPassword(password);
-        setSSHKey(sshKey);
-        setSSHPhrase(sshPhrase);
-        setUseSSHKey(sshKey.length > 0 && password.length === 0);
+    const editSSH = async (terminal: TerminalSpec) => {
+        try {
+            const { port, label, address, username, password, sshKey, sshPhrase } = await decodeSSH(terminal);
+            setPort(port.toString());
+            setLabel(label);
+            setAddress(address);
+            setUsername(username);
+            setPassword(password || '');
+            setSSHKey(sshKey || '');
+            setSSHPhrase(sshPhrase || '');
+            setUseSSHKey((sshKey || '').length > 0 && (password || '').length === 0);
+        } catch (error) {
+            alert.error(error.message);
+        }
     };
 
-    const deleteSSH = (terminal) => {
-        const prev = getData('history') || [];
-        let deletedArr = prev.filter(({ terminal: t }) => t.address !== terminal.address);
+    const deleteSSH = (terminalSpec: TerminalSpec) => {
+        const prev: TerminalSpec[] = getData('history') as TerminalSpec[] || [];
+        const deletedArr = prev.filter((spec) => spec.address !== terminalSpec.address);
 
         saveData('history', deletedArr);
         setHistoryData(deletedArr);
 
-        alert.success(`Address ${terminal.address} has been deleted!`, { timeout: 2500 });
+        alert.success(`Address ${terminalSpec.address} has been deleted!`, { timeout: 2500 });
     }
 
-    const onHistoryClick = (terminal) => {
+    const onHistoryClick = (terminal: TerminalSpec) => {
         decodeSSH(terminal)
-            .then((terminal) => runSSH(terminal))
+            .then((terminalDecoded) => runSSH(terminalDecoded))
             .catch(err => alert.error(err.message))
     }
 
@@ -142,7 +137,7 @@ const AddNew = () => {
                                 transform="translateY(-50%)"
                             />
                         }
-                        onChange={(e) => setLabel(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLabel(e.target.value)}
                     />
 
                     <VSeparator />
@@ -162,7 +157,7 @@ const AddNew = () => {
                                 transform="translateY(-50%)"
                             />
                         }
-                        onChange={(e) => setAddress(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAddress(e.target.value)}
                     />
 
                     <VSeparator />
@@ -182,7 +177,7 @@ const AddNew = () => {
                                 transform="translateY(-50%)"
                             />
                         }
-                        onChange={(e) => setUsername(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
                     />
                     <VSeparator />
                     <Input
@@ -200,19 +195,19 @@ const AddNew = () => {
                                 transform="translateY(-50%)"
                             />
                         }
-                        onChange={(e) => setPort(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPort(e.target.value)}
                     />
 
                     <VSeparator />
 
                     <Label align="center" textWeight="600" m={{ b: "0.5rem" }} style={styles.sshLabel}>
-                        <Checkbox checked={useSSHKey} onChange={(e) => setUseSSHKey(e.target.checked)} /> Use SSH key
+                        <Checkbox checked={useSSHKey} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUseSSHKey(e.target.checked)} /> Use SSH key
                     </Label>
 
                     <VSeparator />
                     {useSSHKey ? (
                         <>
-                            <Textarea placeholder="Private key" value={sshKey} onChange={(e) => setSSHKey(e.target.value)} />
+                            <Textarea placeholder="Private key" value={sshKey} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSSHKey(e.target.value)} />
                             <VSeparator height={7} />
                             <Input
                                 placeholder="Phrase"
@@ -230,7 +225,7 @@ const AddNew = () => {
                                         transform="translateY(-50%)"
                                     />
                                 }
-                                onChange={(e) => setSSHPhrase(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSSHPhrase(e.target.value)}
                             />
                         </>
                     ) : (
@@ -250,7 +245,7 @@ const AddNew = () => {
                                     transform="translateY(-50%)"
                                 />
                             }
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                         />
                     )}
 
@@ -265,7 +260,7 @@ const AddNew = () => {
                             shadow="3"
                             hoverShadow="4"
                             m={{ r: "1rem" }}
-                            onClick={() => saveSSH(port, label, address, username, password, sshKey, sshPhrase)}
+                            onClick={() => saveSSH({ port: _.parseInt(port, 10), label, address, username, password, sshKey, sshPhrase })}
                         >
                             Save it
                         </Button>
@@ -279,7 +274,7 @@ const AddNew = () => {
                             bg="success700"
                             hoverBg="success600"
                             m={{ r: "1rem" }}
-                            onClick={() => runSSH({ port, label, address, username, password, sshKey, sshPhrase })}
+                            onClick={() => runSSH({ port: _.parseInt(port, 10), label, address, username, password, sshKey, sshPhrase })}
                         >
                             Connect
                         </Button>
@@ -288,11 +283,11 @@ const AddNew = () => {
 
                     <div style={styles.historyContainer}>
 
-                        {historyData.map(({ terminal }, i) => (
+                        {historyData.map((terminalSpec, i) => (
                             <HistoryBox
                                 key={i}
-                                terminal={terminal}
-                                onClick={() => onHistoryClick(terminal)}
+                                terminalSpec={terminalSpec}
+                                onClick={() => onHistoryClick(terminalSpec)}
                                 onEdit={editSSH}
                                 onDelete={deleteSSH}
                             />
