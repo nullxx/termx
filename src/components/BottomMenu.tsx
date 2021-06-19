@@ -1,22 +1,25 @@
-import BottomMenuContext from '../contexts/bottomMenu/BottomMenuContext';
+import BottomMenuContext, { BottomMenuContextValue } from '../contexts/bottomMenu/BottomMenuContext';
+import React, { FC } from 'react';
+import { Terminal, TerminalIdentifier } from '../types/termx/Terminal';
+
 import BoxTab from './BoxTab';
 import { Icon } from 'atomize';
-import PropTypes from 'prop-types';
-import React from 'react';
 import { animations } from 'react-animation';
 import style from '../styles/BottonMenu';
-const BottomMenu = (props) => {
-    const [terminals, setTerminals] = React.useState([]);
 
-    const addTerminal = ({ terminal, id }) => {
-        setTerminals((prevTerminals) => [...prevTerminals, { terminal, id }]);
+const BottomMenu: FC = (props) => {
+    const [terminals, setTerminals] = React.useState<Terminal[]>([]);
+
+    const addTerminal = ({ spec, id }: Terminal) => {
+
+        setTerminals((prevTerminals: Terminal[]) => [...prevTerminals, { spec, id }]);
     }
 
-    const removeTerminal = ({ id }) => {
+    const removeTerminal = ({ id }: { id: TerminalIdentifier }) => {
         setTerminals((prevTerminals) => prevTerminals.filter((t) => t.id !== id));
     }
 
-    const contextValue = {
+    const contextValue: BottomMenuContextValue = {
         addTerminal,
         removeTerminal
     };
@@ -36,7 +39,7 @@ const BottomMenu = (props) => {
                     pushRoute="/"
                 />
 
-                {terminals.map(({ terminal: { label }, id }, i) => (
+                {terminals.map(({ spec: { label }, id }, i) => (
                     <BoxTab
                         {...props}
                         title={label}
@@ -44,7 +47,7 @@ const BottomMenu = (props) => {
                             m={{ r: "0.5rem" }} />}
                         m={{ l: "0.1rem" }}
                         pushRoute={"/terminal/" + id}
-                        data={{ id }}
+                        state={{ data: { id } }}
                         key={i}
                         style={{ animation: animations.slideIn }}
                     />
@@ -53,13 +56,5 @@ const BottomMenu = (props) => {
         </>
     )
 }
-
-BottomMenu.propTypes = {
-    children: PropTypes.node,
-    history: PropTypes.object,
-    onClick: PropTypes.func,
-    onEdit: PropTypes.func,
-    onDelete: PropTypes.func
-};
 
 export default BottomMenu;

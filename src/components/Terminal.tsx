@@ -1,15 +1,28 @@
-import PropTypes from 'prop-types';
-import React from 'react';
+import React, { FC, RefObject } from 'react';
+import { Terminal, TerminalIdentifier, TerminalSize } from '../types/termx/Terminal';
+
+import { HistoryState } from '../types/termx/History';
+import { RouteComponentProps } from 'react-router';
 import { XTerm } from 'xterm-for-react';
+import { Terminal as XTermTerminal } from 'xterm';
 import styles from '../styles/Terminal'
 import { useAlert } from 'react-alert'
 import useBottomMenu from "../contexts/bottomMenu/useBottomMenu";
 import { useHistory } from 'react-router-dom';
+
 const { ipcRenderer } = window.require('electron')
 
-const terminalsData = {};
+interface MatchParams {
+    id: string;
+}
 
-const addData = (id, data) => {
+interface TerminalsData {
+    [index: string]: Buffer[];
+}
+
+const terminalsData: TerminalsData = {};
+
+const addData = (id: TerminalIdentifier, data: Buffer) => {
     if (terminalsData[id]) {
         terminalsData[id].push(data);
     } else {
@@ -17,61 +30,66 @@ const addData = (id, data) => {
     }
 }
 
-const getData = (id) => {
+const getData = (id: TerminalIdentifier) => {
     return terminalsData[id] || [];
 }
 
-const getFitSize = (terminal) => {
+const getFitSize = (terminal: XTermTerminal): TerminalSize => {
     const BOTTOM_HEIGHT = 30;
 
     const height = window.innerHeight - BOTTOM_HEIGHT;
     const width = window.innerWidth;
 
-    const rows = height / terminal._core._renderService.dimensions.actualCellHeight;
-    const fullCols = width / terminal._core._renderService.dimensions.actualCellWidth;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const core = (terminal as any)._core;
+
+    const rows = height / core._renderService.dimensions.actualCellHeight;
+    const fullCols = width / core._renderService.dimensions.actualCellWidth;
 
     return { cols: Math.floor(fullCols), rows: Math.floor(rows), height, width };
 }
 
-const Terminal = (props) => {
+const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
     const bottomMenu = useBottomMenu();
-    const term = React.useRef();
+    const term = React.useRef() as RefObject<XTerm>;
     const alert = useAlert();
-    const history = useHistory();
+    const history = useHistory<HistoryState>();
 
-    const { terminal, id } = JSON.parse(props.location.state);
+    const { data }: HistoryState = props.location.state as HistoryState;
+    const { spec: terminalSpec, id }: Terminal = data as unknown as Terminal;
 
-    const onResize = function (e) {
-        if (e) e.preventDefault();
-        if (!term || !term.current || !term.current.terminal) return;
-        const { cols, rows, height, width } = getFitSize(term.current.terminal);
+    const onResize = function (e?: UIEvent) {
+        e?.preventDefault();
 
-        term.current.terminal.resize(cols, rows);
+        if (!term || !term.current || !term.current?.terminal) return;
+        const { cols, rows, height, width } = getFitSize(term.current?.terminal);
+
+        term.current?.terminal.resize(cols, rows);
         ipcRenderer.send('onWindowResized', { size: { cols, rows, height, width }, id });
     };
 
     window.addEventListener('resize', onResize);
 
     React.useEffect(() => {
-        if (!term || !term.current || !term.current.terminal) return;
+        if (!term || !term.current || !term.current?.terminal) return;
 
-        term.current && term.current.terminal.clear();
+        term.current && term.current?.terminal.clear();
 
-        getData(id).forEach((data) => {
-            term.current && term.current.terminal.write(data, () => term.current.terminal.scrollToBottom());
+        getData(id).forEach((data: Buffer) => {
+            term.current && term.current?.terminal.write(data, () => term.current?.terminal.scrollToBottom());
         });
 
-        const onSSHData = (e, { id: newDataId, data }) => {
+        const onSSHData = (_e: UIEvent, { id: newDataId, data }: { id: TerminalIdentifier, data: Buffer }) => {
             if (!term.current) return;
             addData(newDataId, data);
             if (id === newDataId) { // if an event comes from other terminal id
-                term.current.terminal.write(data, () => {
+                term.current?.terminal.write(data, () => {
                     ipcRenderer.send('ssh-chunkWroten', { chunk: data, id }); // notify chunk was end woritting
                 });
             }
         };
 
-        const onSSHError = (event, { id: newDataId, error }) => {
+        const onSSHError = (_event: UIEvent, { id: newDataId, error }: { id: TerminalIdentifier, error: Error }) => {
             alert.error('Connection erroned, ' + error.message, {
                 onClose: () => {
                     bottomMenu.removeTerminal({ id: newDataId });
@@ -79,14 +97,14 @@ const Terminal = (props) => {
                 }
             });
         };
-        const onSSHSTDError = (event, { id: newDataId, data }) => {
+        const onSSHSTDError = (_event: UIEvent, { id: newDataId, data }: { id: TerminalIdentifier, data: Buffer }) => {
             if (newDataId === id) {
-                alert.warn('Connection erroned, ' + data);
+                alert.show('Connection erroned, ' + data);
 
             }
         }
 
-        const onSSHClose = (event, { id: newDataId, code, signal }) => {
+        const onSSHClose = (_event: UIEvent, { id: newDataId, code, signal }: { id: TerminalIdentifier, code: string, signal: string | undefined }) => {
             alert.error(`Connection closed with code ${code} ${signal ? `(${signal})` : ''}`, {
                 onClose: () => {
                     bottomMenu.removeTerminal({ id: newDataId });
@@ -101,12 +119,12 @@ const Terminal = (props) => {
         ipcRenderer.addListener('ssh-close', onSSHClose);
 
 
-        const onTerminalData = term.current.terminal.onData(e => {
+        const onTerminalData = term.current?.terminal.onData(e => {
             ipcRenderer.send('send-command-ssh', { inputCommand: e, id });
         });
 
-        ipcRenderer.send('init-ssh', { terminal, id, size: getFitSize(term.current.terminal) });
-        onResize(null);
+        ipcRenderer.send('init-ssh', { terminal: terminalSpec, id, size: getFitSize(term.current?.terminal) });
+        onResize();
         return function cleanup() {
             onTerminalData.dispose();
             ipcRenderer.removeListener('ssh-data', onSSHData);
@@ -115,6 +133,7 @@ const Terminal = (props) => {
             ipcRenderer.removeListener('ssh-close', onSSHClose);
             window.removeEventListener('resize', onResize);
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [term, props.match.params.id]);
 
     return (
@@ -124,10 +143,5 @@ const Terminal = (props) => {
     );
 }
 
-Terminal.propTypes = {
-    location: PropTypes.object,
-    history: PropTypes.object,
-    match: PropTypes.object
-};
 
-export default Terminal;
+export default TerminalComponent;

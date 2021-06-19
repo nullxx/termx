@@ -1,15 +1,25 @@
 import { Button, Icon } from 'atomize';
+import React, { FC } from 'react';
 
-import PropTypes from 'prop-types';
-import React from 'react';
+import { HistoryState } from '../types/termx/History';
 import styles from '../styles/BoxTab';
 import { useHistory } from 'react-router-dom';
 
-const BoxTab = ({ title, icon, pushRoute, data, ...props }) => {
-    const history = useHistory();
+interface BoxTabProps {
+    title: string;
+    icon: React.ReactElement,
+    pushRoute: string;
+    state?: HistoryState;
+    style?: React.CSSProperties;
+
+    [x: string]: unknown; // other props
+}
+
+const BoxTab: FC<BoxTabProps> = ({ title, icon, pushRoute, state, ...props }) => {
+    const history = useHistory<HistoryState>();
 
     const onClick = () => {
-        history.push(pushRoute, JSON.stringify(data));
+        history.push(pushRoute, state);
     }
 
     return (
@@ -29,16 +39,6 @@ const BoxTab = ({ title, icon, pushRoute, data, ...props }) => {
             {title}
         </Button>
     )
-};
-
-BoxTab.propTypes = {
-    title: PropTypes.string,
-    subtitle: PropTypes.string,
-    icon: PropTypes.node,
-    history: PropTypes.object,
-    pushRoute: PropTypes.string,
-    data: PropTypes.object,
-    style: PropTypes.object,
 };
 
 export default BoxTab;
