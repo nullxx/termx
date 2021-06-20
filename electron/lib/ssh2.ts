@@ -90,8 +90,6 @@ const initSSH = (_event: Electron.IpcMainEvent, { terminal, size, id }: { termin
             passphrase: sshPhrase
         });
 
-        checkAliveCron({ time: 10 });
-
     } catch (error) {
         mainWindow?.webContents.send('ssh-error', { id, error });
     }
@@ -149,6 +147,7 @@ const checkAliveCron = ({ time }: { time: number }) => {
     }, time * 1000);
 }
 
+checkAliveCron({ time: 10 });
 ipcMain.on('init-ssh', initSSH);
 ipcMain.on('send-command-ssh', sendCommandSSH);
 ipcMain.on('onWindowResized', onWindowResized);
