@@ -5,6 +5,10 @@
   "description": "A simple SSH terminal app.",
   "main": "dist/main.js",
   "homepage": "./",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nullxx/termx.git"
+  },
   "scripts": {
     "start": "yarn run start:react \"wait-on http://localhost:3000 && yarn run transpile:electron && yarn run start:forge \"",
     "build": "react-scripts build",
@@ -22,33 +26,7 @@
   },
   "license": "MIT",
   "config": {
-    "forge": {
-      "packagerConfig": {
-        "icon": "public/icons/icon.icns"
-      },
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "termx"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin"
-          ]
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {}
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "config": {}
-        }
-      ]
-    }
+    "forge": "./forge.config.js"
   },
   "dependencies": {
     "electron-is-dev": "^2.0.0",
@@ -60,9 +38,11 @@
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.54",
     "@electron-forge/maker-deb": "^6.0.0-beta.54",
+    "@electron-forge/maker-dmg": "^6.0.0-beta.57",
     "@electron-forge/maker-rpm": "^6.0.0-beta.54",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
     "@electron-forge/maker-zip": "^6.0.0-beta.54",
+    "@electron-forge/publisher-github": "^6.0.0-beta.57",
     "@types/electron": "^1.6.10",
     "@types/jest": "^26.0.23",
     "@types/lodash": "^4.14.170",
@@ -77,6 +57,7 @@
     "@types/uuid": "^8.3.0",
     "atomize": "^1.0.26",
     "concurrently": "^6.2.0",
+    "dotenv": "^10.0.0",
     "electron": "13.1.1",
     "eslint": "^7.28.0",
     "lodash": "^4.17.21",

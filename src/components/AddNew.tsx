@@ -54,13 +54,12 @@ const AddNew: FC = () => {
         }
 
         const toSaveSpec: TerminalSpec = { port, label, address, username, password: '', sshKey: '', sshPhrase: '' };
-
-        if (password) toSaveSpec.passwordId = await storeSecure({ service: `termx-ssh-${address}`, secureValue: password });
-        if (sshKey) toSaveSpec.sshKeyId = await storeSecure({ service: `termx-ssh-${address}`, secureValue: sshKey });
-        if (sshPhrase) toSaveSpec.sshPhraseId = await storeSecure({ service: `termx-ssh-${address}`, secureValue: sshPhrase });
-
         const prev: TerminalSpec[] = getData('history') as TerminalSpec[] || [];
         const savedPrevIndex = prev.findIndex((spec) => toSaveSpec.address === spec.address);
+
+        if (password) toSaveSpec.passwordId = await storeSecure({ service: `termx-ssh-${address}`, account: prev[savedPrevIndex].passwordId, secureValue: password });
+        if (sshKey) toSaveSpec.sshKeyId = await storeSecure({ service: `termx-ssh-${address}`, account: prev[savedPrevIndex].sshKeyId, secureValue: sshKey });
+        if (sshPhrase) toSaveSpec.sshPhraseId = await storeSecure({ service: `termx-ssh-${address}`, account: prev[savedPrevIndex].sshPhraseId, secureValue: sshPhrase });
 
         if (savedPrevIndex !== -1) {
             prev[savedPrevIndex] = toSaveSpec;
