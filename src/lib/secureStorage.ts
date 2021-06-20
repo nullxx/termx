@@ -10,5 +10,8 @@ async function storeSecure({ service = 'ssh', account = uuid(), secureValue }: {
 async function getStoredSecure({ service = 'ssh', account }: { service: string, account: string }): Promise<string> {
     return keytar.getPassword(service, account);
 }
+async function deleteStoredSecure({ service = 'ssh', account }: { service: string, account: string }): Promise<boolean> {
+    return keytar.deletePassword(service, account);
+}
 
-export { storeSecure, getStoredSecure };
+export { storeSecure, getStoredSecure, deleteStoredSecure };

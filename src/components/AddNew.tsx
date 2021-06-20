@@ -1,8 +1,8 @@
 import { Button, Checkbox, Icon, Image, Input, Label, Textarea } from "atomize";
 import React, { FC } from 'react';
 import { TerminalIdentifier, TerminalSpec } from '../types/termx/Terminal';
+import { deleteStoredSecure, getStoredSecure, storeSecure } from "../lib/secureStorage";
 import { getData, saveData } from '../lib/localStorage';
-import { getStoredSecure, storeSecure } from "../lib/secureStorage";
 
 import HistoryBox from "./HistoryBox";
 import { HistoryState } from "../types/termx/History";
@@ -15,6 +15,8 @@ import { useAlert } from 'react-alert'
 import useBottomMenu from "../contexts/bottomMenu/useBottomMenu";
 import { useHistory } from "react-router-dom";
 import { v4 as uuid } from 'uuid';
+
+const logger = window.require('electron-log');
 
 const AddNew: FC = () => {
     const alert = useAlert();
@@ -53,9 +55,9 @@ const AddNew: FC = () => {
 
         const toSaveSpec: TerminalSpec = { port, label, address, username, password: '', sshKey: '', sshPhrase: '' };
 
-        if (password) toSaveSpec.passwordId = await storeSecure({ service: 'ssh', secureValue: password });
-        if (sshKey) toSaveSpec.sshKeyId = await storeSecure({ service: 'ssh', secureValue: sshKey });
-        if (sshPhrase) toSaveSpec.sshPhraseId = await storeSecure({ service: 'ssh', secureValue: sshPhrase });
+        if (password) toSaveSpec.passwordId = await storeSecure({ service: `termx-ssh-${address}`, secureValue: password });
+        if (sshKey) toSaveSpec.sshKeyId = await storeSecure({ service: `termx-ssh-${address}`, secureValue: sshKey });
+        if (sshPhrase) toSaveSpec.sshPhraseId = await storeSecure({ service: `termx-ssh-${address}`, secureValue: sshPhrase });
 
         const prev: TerminalSpec[] = getData('history') as TerminalSpec[] || [];
         const savedPrevIndex = prev.findIndex((spec) => toSaveSpec.address === spec.address);
@@ -72,12 +74,12 @@ const AddNew: FC = () => {
         alert.success('Saved!', { timeout: 2500 });
     }
 
-    const decodeSSH = async (TerminalSpec: TerminalSpec) => {
-        const decodedTerminalSpec = _.clone(TerminalSpec);
+    const decodeSSH = async (terminalSpec: TerminalSpec) => {
+        const decodedTerminalSpec = _.clone(terminalSpec);
 
-        if (decodedTerminalSpec.passwordId) decodedTerminalSpec.password = await getStoredSecure({ service: 'ssh', account: decodedTerminalSpec.passwordId });
-        if (decodedTerminalSpec.sshKeyId) decodedTerminalSpec.sshKey = await getStoredSecure({ service: 'ssh', account: decodedTerminalSpec.sshKeyId });
-        if (decodedTerminalSpec.sshPhraseId) decodedTerminalSpec.sshPhrase = await getStoredSecure({ service: 'ssh', account: decodedTerminalSpec.sshPhraseId });
+        if (decodedTerminalSpec.passwordId) decodedTerminalSpec.password = await getStoredSecure({ service: `termx-ssh-${decodedTerminalSpec.address}`, account: decodedTerminalSpec.passwordId });
+        if (decodedTerminalSpec.sshKeyId) decodedTerminalSpec.sshKey = await getStoredSecure({ service: `termx-ssh-${decodedTerminalSpec.address}`, account: decodedTerminalSpec.sshKeyId });
+        if (decodedTerminalSpec.sshPhraseId) decodedTerminalSpec.sshPhrase = await getStoredSecure({ service: `termx-ssh-${decodedTerminalSpec.address}`, account: decodedTerminalSpec.sshPhraseId });
 
         return decodedTerminalSpec;
     }
@@ -94,24 +96,40 @@ const AddNew: FC = () => {
             setSSHPhrase(sshPhrase || '');
             setUseSSHKey((sshKey || '').length > 0 && (password || '').length === 0);
         } catch (error) {
+            logger.error(editSSH.name, error);
             alert.error(error.message);
         }
     };
 
     const deleteSSH = (terminalSpec: TerminalSpec) => {
-        const prev: TerminalSpec[] = getData('history') as TerminalSpec[] || [];
-        const deletedArr = prev.filter((spec) => spec.address !== terminalSpec.address);
+        try {
+            const deletedPassword = terminalSpec.passwordId ? deleteStoredSecure({ service: `termx-ssh-${terminalSpec.address}`, account: terminalSpec.passwordId }) : true;
+            const deletedSSHKey = terminalSpec.sshKeyId ? deleteStoredSecure({ service: `termx-ssh-${terminalSpec.address}`, account: terminalSpec.sshKeyId }) : true;
+            const deletedSSHPhrase = terminalSpec.sshPhraseId ? deleteStoredSecure({ service: `termx-ssh-${terminalSpec.address}`, account: terminalSpec.sshPhraseId }) : true;
 
-        saveData('history', deletedArr);
-        setHistoryData(deletedArr);
+            if (!deletedPassword || !deletedSSHKey || !deletedSSHPhrase) {
+                throw new Error('Cannot delete password from secure store');
+            }
 
-        alert.success(`Address ${terminalSpec.address} has been deleted!`, { timeout: 2500 });
+            const prev: TerminalSpec[] = getData('history') as TerminalSpec[] || [];
+            const deletedArr = prev.filter((spec) => spec.address !== terminalSpec.address);
+
+            saveData('history', deletedArr);
+            setHistoryData(deletedArr);
+
+            alert.success(`Address ${terminalSpec.address} has been deleted!`, { timeout: 2500 });
+        } catch (error) {
+            logger.error(deleteSSH.name, error);
+        }
     }
 
     const onHistoryClick = (terminal: TerminalSpec) => {
         decodeSSH(terminal)
             .then((terminalDecoded) => runSSH(terminalDecoded))
-            .catch(err => alert.error(err.message))
+            .catch(err => {
+                logger.error(onHistoryClick.name, err);
+                alert.error(err.message);
+            });
     }
 
     return (

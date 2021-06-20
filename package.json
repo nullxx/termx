@@ -6,9 +6,10 @@
   "main": "dist/main.js",
   "homepage": "./",
   "scripts": {
-    "start": "concurrently \"BROWSER=none react-scripts start\" \"wait-on http://localhost:3000 && yarn run transpile:electron && yarn run start:forge \"",
+    "start": "yarn run start:react \"wait-on http://localhost:3000 && yarn run transpile:electron && yarn run start:forge \"",
     "build": "react-scripts build",
     "start:forge": "electron-forge start",
+    "start:react": "concurrently \"BROWSER=none react-scripts start\"",
     "package": "electron-forge package",
     "make": "yarn run transpile:electron && yarn run build && electron-forge make",
     "publish": "electron-forge publish",
