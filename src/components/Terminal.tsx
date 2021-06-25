@@ -124,14 +124,21 @@ const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
         ipcRenderer.addListener('ssh-close', onSSHClose);
 
 
-        const onTerminalData = term.current?.terminal.onData(e => {
-            ipcRenderer.send('send-command-ssh', { inputCommand: e, id });
-        });
+        const onTerminalData = [
+            term.current?.terminal.onBinary(e => {
+                ipcRenderer.send('send-command-ssh', { inputCommand: Buffer.from(e, 'binary'), id });
+            }),
+            term.current?.terminal.onData(e => {
+                ipcRenderer.send('send-command-ssh', { inputCommand: Buffer.from(e, 'utf-8'), id });
+            }),
+        ]
+
+
 
         ipcRenderer.send('init-ssh', { terminal: terminalSpec, id, size: getFitSize(term.current?.terminal) });
         onResize();
         return function cleanup() {
-            onTerminalData.dispose();
+            onTerminalData.forEach(({ dispose }) => dispose());
             ipcRenderer.removeListener('ssh-data', onSSHData);
             ipcRenderer.removeListener('ssh-error', onSSHError);
             ipcRenderer.removeListener('ssh-stderr', onSSHSTDError);

@@ -109,7 +109,7 @@ const sendCommandSSH = (_event: Electron.IpcMainEvent, { inputCommand, id }: { i
     }
 
     logger.debug(getFileName(__filename), sendCommandSSH.name, 'writting to stream');
-    return streamObj.stream.write(Buffer.from(inputCommand, 'utf-8'));
+    return streamObj.stream.write(inputCommand);
 };
 
 const onWindowResized = (_event: Electron.IpcMainEvent, { size: { rows, cols, height, width }, id }: { size: TerminalSize, id: TerminalIdentifier }) => {
