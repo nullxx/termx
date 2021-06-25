@@ -9,8 +9,8 @@ import styles from '../styles/Terminal'
 import { useAlert } from 'react-alert'
 import useBottomMenu from "../contexts/bottomMenu/useBottomMenu";
 import { useHistory } from 'react-router-dom';
-
-const { ipcRenderer } = window.require('electron')
+import { WebLinksAddon } from 'xterm-addon-web-links';
+const { ipcRenderer, shell } = window.require('electron')
 
 interface MatchParams {
     id: string;
@@ -53,6 +53,7 @@ const getFitSize = (terminal: XTermTerminal): TerminalSize => {
 }
 
 const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
+    const webLinksAddon = new WebLinksAddon((_e, url) => shell.openExternal(url));
     const bottomMenu = useBottomMenu();
     const term = React.useRef() as RefObject<XTerm>;
     const alert = useAlert();
@@ -137,12 +138,12 @@ const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
             ipcRenderer.removeListener('ssh-close', onSSHClose);
             window.removeEventListener('resize', onResize);
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [term, props.match.params.id]);
 
     return (
         <div style={styles.container}>
-            <XTerm ref={term} />
+            <XTerm ref={term} addons={[webLinksAddon]} />
         </div>
     );
 }
