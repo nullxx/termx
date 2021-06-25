@@ -22,9 +22,12 @@ interface TerminalsData {
 
 const terminalsData: TerminalsData = {};
 
-const addData = (id: TerminalIdentifier, data: Buffer) => {
+const addData = (id: TerminalIdentifier, data: Buffer, maxBufferSize: number) => {
     if (terminalsData[id]) {
         terminalsData[id].push(data);
+        if (terminalsData[id].length >= maxBufferSize) {
+            terminalsData[id] = terminalsData[id].slice(terminalsData[id].length - maxBufferSize);
+        }
     } else {
         terminalsData[id] = [data];
     }
@@ -81,7 +84,8 @@ const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
 
         const onSSHData = (_e: UIEvent, { id: newDataId, data }: { id: TerminalIdentifier, data: Buffer }) => {
             if (!term.current) return;
-            addData(newDataId, data);
+            const maxBufferSize = term.current.terminal.getOption('scrollback');
+            addData(newDataId, data, maxBufferSize);
             if (id === newDataId) { // if an event comes from other terminal id
                 term.current?.terminal.write(data, () => {
                     ipcRenderer.send('ssh-chunkWroten', { chunk: data, id }); // notify chunk was end woritting
