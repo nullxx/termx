@@ -1,17 +1,18 @@
 import React, { FC, RefObject } from 'react';
-import { Terminal, TerminalIdentifier, TerminalSize } from '../types/termx/Terminal';
-
-import { HistoryState } from '../types/termx/History';
-import { RouteComponentProps } from 'react-router';
 import { XTerm } from 'xterm-for-react';
 import { Terminal as XTermTerminal } from 'xterm';
-import styles from '../styles/Terminal'
-import { useAlert } from 'react-alert'
-import useBottomMenu from "../contexts/bottomMenu/useBottomMenu";
 import { useHistory } from 'react-router-dom';
 import { WebLinksAddon } from 'xterm-addon-web-links';
-const { ipcRenderer, shell } = window.require('electron')
+import { Blazer } from 'xterm-theme';
+import { useAlert } from 'react-alert';
+import { RouteComponentProps } from 'react-router';
 
+import useBottomMenu from "../contexts/bottomMenu/useBottomMenu";
+import { Terminal, TerminalIdentifier, TerminalSize } from '../types/termx/Terminal';
+import { HistoryState } from '../types/termx/History';
+import styles from '../styles/Terminal'
+
+const { ipcRenderer, shell } = window.require('electron')
 interface MatchParams {
     id: string;
 }
@@ -150,7 +151,7 @@ const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
 
     return (
         <div style={styles.container}>
-            <XTerm ref={term} addons={[webLinksAddon]} />
+            <XTerm ref={term} addons={[webLinksAddon]} options={{ theme: Blazer }} /> {/* Default theme by now */}
         </div>
     );
 }
