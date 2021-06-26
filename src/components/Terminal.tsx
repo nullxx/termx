@@ -78,7 +78,7 @@ const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
     React.useEffect(() => {
         if (!term || !term.current || !term.current?.terminal) return;
 
-        term.current && term.current?.terminal.clear();
+        term.current && term.current?.terminal.reset();
 
         getData(id).forEach((data: Buffer) => {
             term.current && term.current?.terminal.write(data, () => term.current?.terminal.scrollToBottom());
@@ -99,7 +99,6 @@ const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
             alert.error('Connection erroned, ' + error.message, {
                 onClose: () => {
                     bottomMenu.removeTerminal({ id: newDataId });
-                    history.push('/');
                 }
             });
         };
