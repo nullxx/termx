@@ -5,7 +5,7 @@ const container: React.CSSProperties = {
     bottom: 0,
     left: 0,
     right: 0,
-    height: 30,
+    height: 45,
     backgroundColor: '#5f6362',
     overflowX: 'scroll',
     display: 'flex',

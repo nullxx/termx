@@ -18,7 +18,7 @@ const iconContainer: React.CSSProperties = {
 const form: React.CSSProperties = {
     margin: 15,
     marginBottom: 10,
-    animation: animations.fadeInUp,
+    animation: animations.fadeIn,
 };
 
 const container: React.CSSProperties = {
@@ -30,14 +30,14 @@ const container: React.CSSProperties = {
     bottom: 0,
     right: 0,
     left: 0,
-    marginBottom: 30
+    marginBottom: 45
 };
 const historyContainer: React.CSSProperties = {
     marginTop: 15,
     display: 'flex',
     overflowX: 'scroll',
     overflowY: 'hidden',
-    animation: animations.bounceIn,
+    animation: animations.fadeIn,
 };
 
 const imageIcon: React.CSSProperties = {

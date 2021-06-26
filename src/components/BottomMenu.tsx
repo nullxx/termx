@@ -3,11 +3,11 @@ import React, { FC } from 'react';
 import { Terminal, TerminalIdentifier } from '../types/termx/Terminal';
 
 import BoxTab from './BoxTab';
+import { HistoryState } from "../types/termx/History";
 import { Icon } from 'atomize';
+import _ from 'lodash';
 import { animations } from 'react-animation';
 import style from '../styles/BottonMenu';
-import { HistoryState } from "../types/termx/History";
-import _ from 'lodash';
 import { useHistory } from 'react-router-dom';
 
 const BottomMenu: FC = (props) => {
@@ -37,16 +37,18 @@ const BottomMenu: FC = (props) => {
         const lastAdded = terminals[terminals.length - 1];
         if (!lastAdded) return;
         history.push('/terminal/' + lastAdded?.id, { data: { spec: lastAdded?.spec, id: lastAdded?.id } });
-        
+
     }, [history, terminals])
 
 
     const addTerminal = ({ spec, id }: Terminal) => {
         setTerminals((prevTerminals: Terminal[]) => [...prevTerminals, { spec, id }]);
-
     }
 
     const removeTerminal = ({ id }: { id: TerminalIdentifier }) => {
+        if (terminals.length - 1 <= 0) {
+            history.push('/');
+        }
         setTerminals((prevTerminals) => prevTerminals.filter((t) => t.id !== id));
     }
 

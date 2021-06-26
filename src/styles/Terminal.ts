@@ -1,7 +1,7 @@
 import { animations } from 'react-animation';
 const styles = {
     container: {
-        animation: animations.fadeInUp,
+        animation: animations.fadeIn,
     }
 };
 

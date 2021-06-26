@@ -1,16 +1,16 @@
 import React, { FC, RefObject } from 'react';
+import { Terminal, TerminalIdentifier, TerminalSize } from '../types/termx/Terminal';
+
+import { Blazer } from 'xterm-theme';
+import { HistoryState } from '../types/termx/History';
+import { RouteComponentProps } from 'react-router';
+import { WebLinksAddon } from 'xterm-addon-web-links';
 import { XTerm } from 'xterm-for-react';
 import { Terminal as XTermTerminal } from 'xterm';
-import { useHistory } from 'react-router-dom';
-import { WebLinksAddon } from 'xterm-addon-web-links';
-import { Blazer } from 'xterm-theme';
-import { useAlert } from 'react-alert';
-import { RouteComponentProps } from 'react-router';
-
-import useBottomMenu from "../contexts/bottomMenu/useBottomMenu";
-import { Terminal, TerminalIdentifier, TerminalSize } from '../types/termx/Terminal';
-import { HistoryState } from '../types/termx/History';
 import styles from '../styles/Terminal'
+import { useAlert } from 'react-alert';
+import useBottomMenu from "../contexts/bottomMenu/useBottomMenu";
+import { useHistory } from 'react-router-dom';
 
 const { ipcRenderer, shell } = window.require('electron')
 interface MatchParams {
@@ -39,7 +39,7 @@ const getData = (id: TerminalIdentifier) => {
 }
 
 const getFitSize = (terminal: XTermTerminal): TerminalSize => {
-    const BOTTOM_HEIGHT = 30;
+    const BOTTOM_HEIGHT = 35; // FIXME actually is 45 but the resize doesn't work properly
 
     const height = window.innerHeight - BOTTOM_HEIGHT;
     const width = window.innerWidth;
@@ -96,26 +96,18 @@ const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
         };
 
         const onSSHError = (_event: UIEvent, { id: newDataId, error }: { id: TerminalIdentifier, error: Error }) => {
-            alert.error('Connection erroned, ' + error.message, {
-                onClose: () => {
-                    bottomMenu.removeTerminal({ id: newDataId });
-                }
-            });
+            alert.error('Connection erroned, ' + error.message);
+            bottomMenu.removeTerminal({ id: newDataId });
         };
         const onSSHSTDError = (_event: UIEvent, { id: newDataId, data }: { id: TerminalIdentifier, data: Buffer }) => {
             if (newDataId === id) {
                 alert.show('Connection erroned, ' + data);
-
             }
         }
 
         const onSSHClose = (_event: UIEvent, { id: newDataId, code, signal }: { id: TerminalIdentifier, code: string, signal: string | undefined }) => {
-            alert.error(`Connection closed with code ${code} ${signal ? `(${signal})` : ''}`, {
-                onClose: () => {
-                    bottomMenu.removeTerminal({ id: newDataId });
-                    history.push('/');
-                }
-            });
+            alert.error(`Connection closed with code ${code} ${signal ? `(${signal})` : ''}`);
+            bottomMenu.removeTerminal({ id: newDataId });
         };
 
         ipcRenderer.addListener('ssh-data', onSSHData);
