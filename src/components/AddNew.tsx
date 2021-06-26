@@ -53,9 +53,9 @@ const AddNew: FC = () => {
         const prev: TerminalSpec[] = getData('history') as TerminalSpec[] || [];
         const savedPrevIndex = prev.findIndex((spec) => toSaveSpec.address === spec.address);
 
-        if (password) toSaveSpec.passwordId = await storeSecure({ service: `termx-ssh-${address}`, account: prev[savedPrevIndex].passwordId, secureValue: password });
-        if (sshKey) toSaveSpec.sshKeyId = await storeSecure({ service: `termx-ssh-${address}`, account: prev[savedPrevIndex].sshKeyId, secureValue: sshKey });
-        if (sshPhrase) toSaveSpec.sshPhraseId = await storeSecure({ service: `termx-ssh-${address}`, account: prev[savedPrevIndex].sshPhraseId, secureValue: sshPhrase });
+        if (password) toSaveSpec.passwordId = await storeSecure({ service: `termx-ssh-${address}`, account: savedPrevIndex !== -1 ? prev[savedPrevIndex].passwordId : undefined, secureValue: password });
+        if (sshKey) toSaveSpec.sshKeyId = await storeSecure({ service: `termx-ssh-${address}`, account: savedPrevIndex  !== -1 ? prev[savedPrevIndex].sshKeyId : undefined, secureValue: sshKey });
+        if (sshPhrase) toSaveSpec.sshPhraseId = await storeSecure({ service: `termx-ssh-${address}`, account: savedPrevIndex !== -1  ? prev[savedPrevIndex].sshPhraseId : undefined, secureValue: sshPhrase });
 
         if (savedPrevIndex !== -1) {
             prev[savedPrevIndex] = toSaveSpec;
