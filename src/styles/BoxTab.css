@@ -1,0 +1,29 @@
+.Tab:not(.disabled):hover:after, .Tab:not(.disabled).active:after {
+    width: 100%;
+    left: 0;
+    right: auto;
+    color: var(--line-color-active);
+}
+
+.Tab:not(.disabled):after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 0;
+  height: 4px;
+  transition: width 250ms;
+  background: currentColor;
+}
+
+/* .Tab:not(.disabled):hover,
+.Tab:not(.disabled).active {
+  color: var(--line-color-active-text);
+} */
+.Tab:not(.disabled):hover:after,
+.Tab:not(.disabled).active:after {
+  width: 100%;
+  left: 0;
+  right: auto;
+  color: var(--line-color-active);
+}

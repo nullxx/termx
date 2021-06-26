@@ -5,7 +5,6 @@ import { deleteStoredSecure, getStoredSecure, storeSecure } from "../lib/secureS
 import { getData, saveData } from '../lib/localStorage';
 
 import HistoryBox from "./HistoryBox";
-import { HistoryState } from "../types/termx/History";
 import PropTypes from 'prop-types';
 import { VSeparator } from './Separator';
 import _ from 'lodash';
@@ -13,7 +12,6 @@ import icon from '../assets/codificacion.png';
 import styles from '../styles/AddNew';
 import { useAlert } from 'react-alert'
 import useBottomMenu from "../contexts/bottomMenu/useBottomMenu";
-import { useHistory } from "react-router-dom";
 import { v4 as uuid } from 'uuid';
 
 const logger = window.require('electron-log');
@@ -21,7 +19,6 @@ const logger = window.require('electron-log');
 const AddNew: FC = () => {
     const alert = useAlert();
     const bottomMenu = useBottomMenu();
-    const history = useHistory<HistoryState>();
 
     const [label, setLabel] = React.useState<string>('');
     const [address, setAddress] = React.useState<string>('');
@@ -43,7 +40,6 @@ const AddNew: FC = () => {
         const spec: TerminalSpec = { port, label, address, username, password, sshKey, sshPhrase };
 
         const id: TerminalIdentifier = uuid();
-        history.push('/terminal/' + id, { data: { spec, id } });
         bottomMenu.addTerminal({ spec, id });
     }
 
