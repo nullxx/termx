@@ -29,7 +29,7 @@ const AddNew: FC = () => {
     const [sshKey, setSSHKey] = React.useState<string>('');
     const [sshPhrase, setSSHPhrase] = React.useState<string>('');
 
-    const [historyData, setHistoryData] = React.useState<TerminalSpec[]>(getData('history') as TerminalSpec[] || []);
+    const [historyData, setHistoryData] = React.useState<TerminalSpec[]>(getData<TerminalSpec[]>('history') || []);
 
     const runSSH = ({ port, label, address, username, password, sshKey, sshPhrase }: TerminalSpec) => {
 

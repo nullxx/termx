@@ -1,10 +1,12 @@
+import '../styles/BoxTab.css';
+
 import { Button, Icon } from 'atomize';
 import React, { FC } from 'react';
 
 import { HistoryState } from '../types/termx/History';
 import styles from '../styles/BoxTab';
 import { useHistory } from 'react-router-dom';
-import '../styles/BoxTab.css';
+
 interface BoxTabProps {
     title: string;
     icon: React.ReactElement,
