@@ -1,3 +1,7 @@
+:root {
+  --line-color-active: rgb(255, 195, 0);
+}
+
 ::-webkit-scrollbar {
-    display: none; /* scroll bar hide */
+  display: none; /* scroll bar hide */
 }

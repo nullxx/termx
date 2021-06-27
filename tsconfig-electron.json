@@ -1,0 +1,39 @@
+{
+    "compilerOptions": {
+      "module": "commonjs",
+      "target": "es5",
+      "allowJs": true,
+      "checkJs": false,
+      "outDir": "./dist",
+      "rootDir": "./electron",
+      "removeComments": true,
+      "noEmit": false,
+      "pretty": true,
+      "skipLibCheck": true,
+      "strict": true,
+      "moduleResolution": "node",
+      "esModuleInterop": true,
+      "typeRoots": [
+        "./src/types",
+        "./node_modules/@types"
+      ],
+      "lib": [
+        "dom",
+        "dom.iterable",
+        "esnext"
+      ],
+      "allowSyntheticDefaultImports": true,
+      "forceConsistentCasingInFileNames": true,
+      "noFallthroughCasesInSwitch": true,
+      "resolveJsonModule": true,
+      "isolatedModules": true
+    },
+    "include": [
+      "./electron"
+    ],
+    "exclude": [
+      "node_modules",
+      "./src/**/*"
+    ]
+  }
+  

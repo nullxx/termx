@@ -1,0 +1,31 @@
+name: Publish
+on: [push]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      matrix:
+        node-version: [10.x]
+    steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Create env file
+        run: |
+          touch .env
+          echo "${{ secrets.ENV_FILE }}" > .env
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - uses: c-hive/gha-yarn-cache@v1
+
+      - name: Publish 
+        run: docker run --rm --env-file <(env | grep -iE 'DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS_TAG|TRAVIS|TRAVIS_REPO_|TRAVIS_BUILD_|TRAVIS_BRANCH|TRAVIS_PULL_REQUEST_|APPVEYOR_|CSC_|GH_|GITHUB_|BT_|AWS_|STRIP|BUILD_')  --env ELECTRON_CACHE="/root/.cache/electron"  --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder"  -v ${PWD}:/project  -v ${PWD##*/}-node-modules:/project/node_modules  -v ~/.cache/electron:/root/.cache/electron  -v ~/.cache/electron-builder:/root/.cache/electron-builder nullx0/electron-wine64:latest /bin/bash -c "yarn && yarn run publish"
