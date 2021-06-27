@@ -96,17 +96,15 @@ const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
         };
 
         const onSSHError = (_event: UIEvent, { id: newDataId, error }: { id: TerminalIdentifier, error: Error }) => {
-            alert.error('Connection erroned, ' + error.message);
+            alert.error(`${terminalSpec.label}: Connection erroned, ${error.message}`);
             bottomMenu.removeTerminal({ id: newDataId });
         };
         const onSSHSTDError = (_event: UIEvent, { id: newDataId, data }: { id: TerminalIdentifier, data: Buffer }) => {
-            if (newDataId === id) {
-                alert.show('Connection erroned, ' + data);
-            }
+            alert.show(`${terminalSpec.label}: Connection erroned, ${data.toString()}`);
         }
 
         const onSSHClose = (_event: UIEvent, { id: newDataId, code, signal }: { id: TerminalIdentifier, code: string, signal: string | undefined }) => {
-            alert.error(`Connection closed with code ${code} ${signal ? `(${signal})` : ''}`);
+            alert.error(`${terminalSpec.label}: Connection closed with code ${code} ${signal ? `(${signal})` : ''}`);
             bottomMenu.removeTerminal({ id: newDataId });
         };
 
