@@ -16,7 +16,7 @@
     "start:react": "concurrently \"BROWSER=none react-scripts start\"",
     "package": "electron-forge package",
     "make": "yarn run transpile:electron && yarn run build && electron-forge make",
-    "publish": "electron-forge publish",
+    "publish": "electron-forge publish -p linux ; electron-forge publish -p win32 ;",
     "transpile:electron": "tsc --p tsconfig-electron.json"
   },
   "keywords": [],
