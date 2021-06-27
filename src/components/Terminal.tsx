@@ -10,7 +10,6 @@ import { Terminal as XTermTerminal } from 'xterm';
 import styles from '../styles/Terminal'
 import { useAlert } from 'react-alert';
 import useBottomMenu from "../contexts/bottomMenu/useBottomMenu";
-import { useHistory } from 'react-router-dom';
 
 const { ipcRenderer, shell } = window.require('electron')
 interface MatchParams {
@@ -58,7 +57,6 @@ const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
     const bottomMenu = useBottomMenu();
     const term = React.useRef() as RefObject<XTerm>;
     const alert = useAlert();
-    const history = useHistory<HistoryState>();
 
     const { data }: HistoryState = props.location.state as HistoryState;
     const { spec: terminalSpec, id }: Terminal = data as unknown as Terminal;
