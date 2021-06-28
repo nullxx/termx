@@ -1,16 +1,17 @@
 import React, { FC, RefObject } from 'react';
 import { Terminal, TerminalIdentifier, TerminalSize } from '../types/termx/Terminal';
 
-import { Blazer } from 'xterm-theme';
+import { Configs } from '../configs';
 import { HistoryState } from '../types/termx/History';
 import { RouteComponentProps } from 'react-router';
 import { WebLinksAddon } from 'xterm-addon-web-links';
 import { XTerm } from 'xterm-for-react';
 import { Terminal as XTermTerminal } from 'xterm';
+import { getData as getStorageData } from '../lib/localStorage';
 import styles from '../styles/Terminal'
+import themes from 'xterm-theme';
 import { useAlert } from 'react-alert';
 import useBottomMenu from "../contexts/bottomMenu/useBottomMenu";
-import { useHistory } from 'react-router-dom';
 
 const { ipcRenderer, shell } = window.require('electron')
 interface MatchParams {
@@ -58,10 +59,12 @@ const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
     const bottomMenu = useBottomMenu();
     const term = React.useRef() as RefObject<XTerm>;
     const alert = useAlert();
-    const history = useHistory<HistoryState>();
 
     const { data }: HistoryState = props.location.state as HistoryState;
     const { spec: terminalSpec, id }: Terminal = data as unknown as Terminal;
+
+    const selectedThemeKey = getStorageData<string>(Configs.CONFIG_THEME) || 'Blazer';
+    const selectedTheme = (themes as never)[selectedThemeKey];
 
     const onResize = function (e?: UIEvent) {
         e?.preventDefault();
@@ -140,7 +143,7 @@ const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
 
     return (
         <div style={styles.container}>
-            <XTerm ref={term} addons={[webLinksAddon]} options={{ theme: Blazer }} /> {/* Default theme by now */}
+            <XTerm ref={term} addons={[webLinksAddon]} options={{ theme: selectedTheme }} />
         </div>
     );
 }

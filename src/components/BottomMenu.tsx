@@ -5,27 +5,33 @@ import { Terminal, TerminalIdentifier } from '../types/termx/Terminal';
 import BoxTab from './BoxTab';
 import { HistoryState } from "../types/termx/History";
 import { Icon } from 'atomize';
-import _ from 'lodash';
+import { IoIosSettings } from 'react-icons/io';
 import { animations } from 'react-animation';
 import style from '../styles/BottonMenu';
 import { useHistory } from 'react-router-dom';
 
 const BottomMenu: FC = (props) => {
     const [terminals, setTerminals] = React.useState<Terminal[]>([]);
-    const [selected, setSelected] = React.useState<Terminal | null>(null);
+    const [selected, setSelected] = React.useState<string | null>(null);
     const history = useHistory<HistoryState>();
 
     React.useEffect(() => {
         const historyListen = history.listen((location) => {
-            setSelected(null);
-
             const id = location.pathname.split('/').pop();
-            if (!id) return;
 
+            switch (id) {
+                case 'add-new':
+                case 'settings':
+                    setSelected(id);
+                    break;
+                default:
+                    setSelected(null);
+
+            }
             const selectedTerminal = terminals.find(terminal => terminal.id === id);
             if (!selectedTerminal) return;
 
-            setSelected(selectedTerminal);
+            setSelected(selectedTerminal.id);
         });
         return () => {
             historyListen();
@@ -64,35 +70,39 @@ const BottomMenu: FC = (props) => {
             </BottomMenuContext.Provider>
 
             <div style={style.container}>
+
+                <BoxTab
+                    {...props}
+                    title="Settings"
+                    isSelected={selected === 'settings'}
+                    icon={<IoIosSettings size={30} />}
+                    pushRoute="/settings"
+                />
+
                 <BoxTab
                     {...props}
                     title="Add new"
-                    isSelected={selected === null}
+                    isSelected={selected === 'add-new' || !selected}
+                    m={{ l: "0.1rem" }}
                     icon={<Icon name="Add" size="16px" color="white"
                         m={{ r: "0.5rem" }} />}
-                    onClick={() => setSelected(null)}
-                    pushRoute="/"
+                    pushRoute="/add-new"
                 />
 
-                {terminals.map((terminal, i) => {
-                    const isSelected = _.isEqual(terminal, selected);
-
-                    return (
-                        <BoxTab
-                            {...props}
-                            title={terminal.spec.label}
-                            isSelected={isSelected}
-                            icon={<Icon name="Dribbble" size="16px" color="white"
-                                m={{ r: "0.5rem" }} />}
-                            m={{ l: "0.1rem" }}
-                            pushRoute={"/terminal/" + terminal.id} // is this being used?
-                            state={{ data: { id: terminal.id } }}
-                            key={i}
-                            // onClick={() => setSelected(terminal)}
-                            style={{ animation: animations.slideIn }}
-                        />
-                    )
-                })}
+                {terminals.map((terminal, i) => (
+                    <BoxTab
+                        {...props}
+                        title={terminal.spec.label}
+                        isSelected={selected === terminal.id}
+                        icon={<Icon name="Dribbble" size="16px" color="white"
+                            m={{ r: "0.5rem" }} />}
+                        m={{ l: "0.1rem" }}
+                        pushRoute={"/terminal/" + terminal.id} // is this being used?
+                        state={{ data: { spec: terminal?.spec, id: terminal?.id } }}
+                        key={i}
+                        style={{ animation: animations.slideIn }}
+                    />
+                ))}
             </div>
         </>
     )

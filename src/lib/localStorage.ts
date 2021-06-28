@@ -1,11 +1,23 @@
-function saveData(key: string, value: unknown) : void {
-    localStorage.setItem(key, JSON.stringify(value));
+import _ from "lodash";
+
+function saveData(key: string, value: unknown): void {
+    let formatted: string;
+    switch (typeof value) {
+        case 'string':
+            formatted = value;
+            break;
+        case 'object':
+        default:
+            formatted = JSON.stringify(value);
+            break;
+    }
+    localStorage.setItem(key, formatted);
 }
 
-function getData(key: string) : unknown {
+function getData<T>(key: string): T | null {
     const strValue = localStorage.getItem(key);
     if (!strValue) return null;
-    return JSON.parse(strValue);
+    return _.attempt(JSON.parse, strValue) instanceof Error ? strValue: JSON.parse(strValue);
 }
 
 export { saveData, getData };
