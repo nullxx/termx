@@ -86,9 +86,8 @@ const BottomMenu: FC = (props) => {
                                 m={{ r: "0.5rem" }} />}
                             m={{ l: "0.1rem" }}
                             pushRoute={"/terminal/" + terminal.id} // is this being used?
-                            state={{ data: { id: terminal.id } }}
+                            state={{ data: { spec: terminal?.spec, id: terminal?.id } }}
                             key={i}
-                            // onClick={() => setSelected(terminal)}
                             style={{ animation: animations.slideIn }}
                         />
                     )
