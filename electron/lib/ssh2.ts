@@ -109,7 +109,7 @@ const sendCommandSSH = (_event: Electron.IpcMainEvent, { inputCommand, id }: { i
     }
 
     logger.debug(getFileName(__filename), sendCommandSSH.name, 'writting to stream');
-    if (streamObj.stream.isPaused) { // if the stream is paused, wait until the next resume to write the stream
+    if (streamObj.stream.isPaused()) { // if the stream is paused, wait until the next resume to write the stream
         streamObj.stream.once('resume', () => streamObj.stream.write(inputCommand));
     } else {
         streamObj.stream.write(inputCommand);
