@@ -68,11 +68,15 @@ module.exports = {
         },
         {
             name: '@electron-forge/maker-deb',
-            config: {}
+            config: {
+                icon: path.join(__dirname, 'public/icons/1024x1024.png'),
+            }
         },
         {
             name: '@electron-forge/maker-rpm',
-            config: {}
+            config: {
+                icon: path.join(__dirname, 'public/icons/1024x1024.png'),
+            }
         }
     ],
     publishers: [
