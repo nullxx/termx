@@ -49,11 +49,9 @@ const initSSH = (_event: Electron.IpcMainEvent, { terminal, size, id }: { termin
                     conn.end();
                     sshStreams = sshStreams.filter(({ id: idTodelete }) => idTodelete !== id);
                 })
-                .on('data', (data: string) => {
-                    const dataBuffered = Buffer.from(data, 'utf-8');
-                    ipcMain.once('ssh-chunkWroten', (_e, { chunk, id: newId }) => newId === id && Buffer.compare(chunk, dataBuffered) === 0 && stream.resume());
+                .on('data', (data: Buffer) => {
                     stream.pause();
-
+                    ipcMain.once('ssh-chunkWroten', (_e, { chunk, id: newId }) => newId === id && Buffer.compare(chunk, data) === 0 && stream.resume());
                     mainWindow?.webContents.send('ssh-data', { id, data });
                 })
                 .stderr.on('data', (data: string) => {
