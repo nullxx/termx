@@ -1,4 +1,4 @@
-const { Titlebar, Color } = window.require('custom-electron-titlebar');
+const { Titlebar } = window.require('custom-electron-titlebar');
 
 const initializeTitleBar = (): void => {
     const customTitlebar = new Titlebar();
