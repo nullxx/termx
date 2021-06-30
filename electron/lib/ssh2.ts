@@ -40,34 +40,21 @@ const initSSH = (_event: Electron.IpcMainEvent, { terminal, size, id }: { termin
                 return;
             }
 
-            let processingChunkBuffer: Buffer | null = null;
             sshStreams.push({ stream, id, client: conn });
-
-            const onChunkWroten = (_e: Electron.IpcMainEvent, { chunk, id: newId }: { chunk: Buffer, id: TerminalIdentifier }) => {
-                if (!processingChunkBuffer) return;
-                const pcssChunkUint8Array = new Uint8Array(processingChunkBuffer.buffer, processingChunkBuffer.byteOffset, processingChunkBuffer.byteLength / Uint8Array.BYTES_PER_ELEMENT);
-
-                if (stream.isPaused() && newId === id && Buffer.compare(pcssChunkUint8Array, chunk) === 0) {
-                    stream.resume();
-                } else if (!stream.isPaused() && newId === id) {
-                    logger.warn(getFileName(__filename), initSSH.name, 'Stream was not paused while trying to resume it', { id });
-                }
-            };
-
-            ipcMain.on('ssh-chunkWroten', onChunkWroten);
 
             stream
                 .on('close', (code: string, signal: string | undefined) => {
                     logger.warn(getFileName(__filename), initSSH.name, 'stream', 'close', { code, signal, id });
                     mainWindow?.webContents.send('ssh-close', { id, code, signal });
-                    ipcMain.removeListener('ssh-chunkWroten', onChunkWroten);
                     conn.end();
                     sshStreams = sshStreams.filter(({ id: idTodelete }) => idTodelete !== id);
                 })
                 .on('data', (data: string) => {
+                    const dataBuffered = Buffer.from(data, 'utf-8');
+                    ipcMain.once('ssh-chunkWroten', (_e, { chunk, id: newId }) => newId === id && Buffer.compare(chunk, dataBuffered) === 0 && stream.resume());
                     stream.pause();
-                    processingChunkBuffer = Buffer.from(data, 'utf-8');
-                    mainWindow?.webContents.send('ssh-data', { id, data: processingChunkBuffer });
+
+                    mainWindow?.webContents.send('ssh-data', { id, data });
                 })
                 .stderr.on('data', (data: string) => {
                     logger.warn(getFileName(__filename), initSSH.name, 'stream', 'stderr', 'data', { data });
