@@ -29,6 +29,7 @@
     "forge": "./forge.config.js"
   },
   "dependencies": {
+    "custom-electron-titlebar": "^3.2.7",
     "electron-is-dev": "^2.0.0",
     "electron-log": "^4.3.5",
     "electron-squirrel-startup": "^1.0.0",

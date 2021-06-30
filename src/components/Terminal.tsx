@@ -37,19 +37,21 @@ const getData = (id: TerminalIdentifier) => {
     return terminalsData[id] || [];
 }
 
+// FIXME
 const getFitSize = (terminal: XTermTerminal): TerminalSize => {
-    const BOTTOM_HEIGHT = 35; // FIXME actually is 45 but the resize doesn't work properly
+    const BOTTOM_HEIGHT = 45;
+    const { width: wPX, height: hPX } = getComputedStyle(document.getElementById('terminal-container')?.parentNode?.parentNode as HTMLElement);
 
-    const height = window.innerHeight - BOTTOM_HEIGHT;
-    const width = window.innerWidth;
+    const width = Number(wPX.replace('px', ''));
+    const height = Number(hPX.replace('px', ''));
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const core = (terminal as any)._core;
 
-    const rows = height / core._renderService.dimensions.actualCellHeight;
+    const rows = (height - BOTTOM_HEIGHT) / core._renderService.dimensions.actualCellHeight;
     const fullCols = width / core._renderService.dimensions.actualCellWidth;
 
-    return { cols: Math.floor(fullCols), rows: Math.floor(rows), height, width };
+    return { cols: Math.round(fullCols), rows: Math.round(rows), height, width };
 }
 
 const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
@@ -137,7 +139,7 @@ const TerminalComponent: FC<RouteComponentProps<MatchParams>> = (props) => {
     }, [term, props.match.params.id]);
 
     return (
-        <div style={styles.container}>
+        <div style={styles.container} id="terminal-container">
             <XTerm ref={term} addons={[webLinksAddon]} options={{ theme: Blazer }} /> {/* Default theme by now */}
         </div>
     );

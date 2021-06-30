@@ -17,13 +17,19 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 let mainWindow;
 
 const createWindow = () => {
+
+  const barStyle: "hidden" | "default" | "hiddenInset" | "customButtonsOnHover" = 'hidden';
+
   const browserWindowsParams = {
     width: 800,
     height: 600,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false
-    }
+      contextIsolation: false,
+      enableRemoteModule: true,
+    },
+    titleBarStyle: barStyle,
+    frame: false,
   };
 
   logger.debug('Create window', browserWindowsParams);
